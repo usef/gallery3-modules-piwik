@@ -1,0 +1,3 @@
+name = "Piwik"
+description = "Append at the bottom of the page the Piwik analytics code."
+version = 1
