@@ -16,8 +16,8 @@ Quoted from [piwik.org](http://piwik.org).
 
 Download
 --------
-This module may be downloaded from gitHub at [github.com/usef/gallery3-modules-piwik/zipball/v1.0](http://github.com/usef/gallery3-modules-piwik/zipball/v1.0).  
-You can check for the latest source commit at [github.com/usef/gallery3-modules-piwik](http://github.com/usef/gallery3-modules-piwik).  
+This module may be downloaded from gitHub at [github.com/usef/gallery3-modules-piwik/zipball/v1.0](http://github.com/usef/gallery3-modules-piwik/zipball/v1.0)   
+You can check for the latest source commit at [github.com/usef/gallery3-modules-piwik](http://github.com/usef/gallery3-modules-piwik)
 
 
 Installation
