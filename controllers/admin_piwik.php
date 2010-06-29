@@ -49,7 +49,7 @@ class Admin_Piwik_Controller extends Admin_Controller {
   private function _get_admin_form() {
     $form = new Forge("admin/piwik/save", "", "post", array("id" => "g-piwik-admin-form"));
     $piwik_settings = $form->group("piwik_settings")->label(t("Settings"));
-    $piwik_settings->input("installation_url")->label(t('Installation Url (ie. www.your-piwik-installation.com)'))->rules("required|valid_url")->value(module::get_var("piwik", "installation_url"));
+    $piwik_settings->input("installation_url")->label(t('Piwik Installation Url (ie. www.your-piwik-installation.com)'))->rules("required|valid_url")->value(module::get_var("piwik", "installation_url"));
     $piwik_settings->input("site_id")->label(t('Site Id'))->rules("required|valid_digit")->value(module::get_var("piwik", "site_id"));
     $piwik_settings->submit("submit")->value(t("Save"));
 
