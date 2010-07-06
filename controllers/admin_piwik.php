@@ -25,11 +25,21 @@ class Admin_Piwik_Controller extends Admin_Controller {
     $view = new Admin_View("admin.html");
     $view->page_title = t("Piwik settings");
     $view->content = new View("admin_piwik.html");
-    $view->content->form = $this->_get_admin_form();
+    $view->content->menu = $this->_get_admin_menu();
+    $view->content->form = $this->_get_admin_basic_form();
     print $view;
   }
 
-  public function save() {
+  public function advanced_settings() {
+    $view = new Admin_View("admin.html");
+    $view->page_title = t("Piwik settings");
+    $view->content = new View("admin_piwik.html");
+    $view->content->menu = $this->_get_admin_menu();
+    $view->content->form = $this->_get_admin_advanced_form();
+    print $view;
+  }
+
+  public function save_settings() {
     access::verify_csrf();
     $form = $this->_get_admin_form();
 
@@ -46,12 +56,55 @@ class Admin_Piwik_Controller extends Admin_Controller {
     url::redirect("admin/piwik");
   }
 
-  private function _get_admin_form() {
-    $form = new Forge("admin/piwik/save", "", "post", array("id" => "g-piwik-admin-form"));
-    $piwik_settings = $form->group("piwik_settings")->label(t("Settings"));
-    $piwik_settings->input("installation_url")->label(t('Piwik Installation Url (ie. www.your-piwik-installation.com)'))->rules("required|valid_url")->value(module::get_var("piwik", "installation_url"));
-    $piwik_settings->input("site_id")->label(t('Site Id'))->rules("required|valid_digit")->value(module::get_var("piwik", "site_id"));
-    $piwik_settings->submit("submit")->value(t("Save"));
+  private function _get_admin_menu() {
+    $menu = Menu::factory("root");
+    $menu->append(
+      Menu::factory("link")
+        ->id("basic_settings")
+        ->label(t("Basic Settings"))
+        ->url(url::site("admin/piwik"))
+      );
+    $menu->append(
+      Menu::factory("link")
+        ->id("advanced_settings")
+        ->label(t("Advanced Settings"))
+        ->url(url::site("admin/piwik/advanced_settings"))
+      );
+
+    return $menu;
+  }
+
+  private function _get_admin_basic_form() {
+    $form = new Forge("admin/piwik/save_settings", "", "post", array("id" => "g-piwik-admin-form"));
+    $piwik_settings = $form->group("piwik_settings")->label(t("Basic Tracking Settings"));
+    $piwik_settings
+       ->input("installation_url")
+       ->label(t('Piwik Installation Url (ie. www.your-piwik-installation.com)'))
+       ->rules("required|valid_url")
+       ->value(module::get_var("piwik", "installation_url"));
+    $piwik_settings
+       ->input("site_id")
+       ->label(t('Site Id'))
+       ->rules("required|valid_digit")
+       ->value(module::get_var("piwik", "site_id"));
+    $piwik_settings
+       ->submit("submit")
+       ->value(t("Save"));
+
+    return $form;
+  }
+  
+  private function _get_admin_advanced_form() {
+    $form = new Forge("admin/piwik/save_settings", "", "post", array("id" => "g-piwik-admin-form"));
+    $piwik_settings = $form->group("piwik_settings")->label(t("Advanced Piwik Settings"));
+    $piwik_settings
+       ->input("token_auth")
+       ->label(t('Authentication Token'))
+       ->rules("required")
+       ->value(module::get_var("piwik", "token_auth"));
+    $piwik_settings
+       ->submit("submit")
+       ->value(t("Save"));
 
     return $form;
   }

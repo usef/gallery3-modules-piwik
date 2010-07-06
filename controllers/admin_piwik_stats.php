@@ -20,18 +20,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA  02110-1301, USA.
  */
-class piwik_event_Core {
-  static function admin_menu($menu, $theme) {
-    $menu->get("settings_menu")
-      ->append(Menu::factory("link")
-               ->id("piwik_menu")
-               ->label(t("Piwik"))
-               ->url(url::site("admin/piwik")));
-    
-    $menu->get("content_menu")
-      ->append(Menu::factory("link")
-               ->id("piwik_stats_menu")
-               ->label(t("Piwik Stats"))
-               ->url(url::site("admin/piwik_stats")));
+class Admin_Piwik_Stats_Controller extends Admin_Controller {
+  public function index() {
+    $view = new Admin_View("admin.html");
+    $view->page_title = t("Hello World");
+    $view->content = new View("admin_piwik.html");
+    print $view;
   }
 }
+
