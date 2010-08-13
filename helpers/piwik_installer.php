@@ -28,6 +28,7 @@ class piwik_installer_Core {
   }
 
   static function uninstall() {
+    module::delete("piwik");
     module::clear_var("piwik", "installation_url");
     module::clear_var("piwik", "site_id");
   }

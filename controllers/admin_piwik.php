@@ -25,7 +25,7 @@ class Admin_Piwik_Controller extends Admin_Controller {
     $view = new Admin_View("admin.html");
     $view->page_title = t("Piwik settings");
     $view->content = new View("admin_piwik.html");
-    $view->content->menu = $this->_get_admin_menu();
+    //$view->content->menu = $this->_get_admin_menu();
     $view->content->form = $this->_get_admin_basic_form();
     print $view;
   }
@@ -41,7 +41,7 @@ class Admin_Piwik_Controller extends Admin_Controller {
 
   public function save_settings() {
     access::verify_csrf();
-    $form = $this->_get_admin_form();
+    $form = $this->_get_admin_basic_form();
 
     try {
       $form->validate();
@@ -50,7 +50,14 @@ class Admin_Piwik_Controller extends Admin_Controller {
       message::error(t("Invalid settings"));
       url::redirect("admin/piwik");
     }
-    module::set_var("piwik", "installation_url", $form->piwik_settings->installation_url->value);
+
+    /* Piwik tracking code needs URLs without the http header */
+    $trackingUrl = $form->piwik_settings->installation_url->value;
+    if (substr($trackingUrl, 0, 4) == "http") {
+      $trackingUrl = substr($trackingUrl, strpos($trackingUrl, "://") + 3);
+    }
+
+    module::set_var("piwik", "installation_url", $trackingUrl);
     module::set_var("piwik", "site_id", $form->piwik_settings->site_id->value);
     message::success(t("Piwik settings updated"));
     url::redirect("admin/piwik");
@@ -79,7 +86,7 @@ class Admin_Piwik_Controller extends Admin_Controller {
     $piwik_settings = $form->group("piwik_settings")->label(t("Basic Tracking Settings"));
     $piwik_settings
        ->input("installation_url")
-       ->label(t('Piwik Installation Url (ie. www.your-piwik-installation.com)'))
+       ->label(t('Piwik Installation Url'))
        ->rules("required|valid_url")
        ->value(module::get_var("piwik", "installation_url"));
     $piwik_settings

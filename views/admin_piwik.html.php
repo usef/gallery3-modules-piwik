@@ -5,10 +5,11 @@
   
   <div class="g-block-content">
     <!-- g-admin-comments-menu is not a correct name for this item! -->
+<!--
     <div id="g-admin-comments-menu" class="ui-helper-clearfix">
-    <?= $menu->render(); ?>
+    <php //$menu->render(); ?>
     </div>
-    
+-->
     <?= $form ?>
   </div>
 </div>
