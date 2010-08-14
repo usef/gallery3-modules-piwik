@@ -22,8 +22,6 @@
  */
 class piwik_installer_Core {
   static function install() {
-    module::set_var("piwik", "installation_url", "www.your-piwik-installation.com");
-    module::set_var("piwik", "site_id", 0);
     module::set_version("piwik", 1);
   }
 
@@ -31,5 +29,7 @@ class piwik_installer_Core {
     module::delete("piwik");
     module::clear_var("piwik", "installation_url");
     module::clear_var("piwik", "site_id");
+    module::clear_var("piwik", "token_auth");
+    module::clear_var("piwik", "enabled_mode");
   }
 }

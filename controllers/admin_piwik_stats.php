@@ -23,8 +23,9 @@
 class Admin_Piwik_Stats_Controller extends Admin_Controller {
   public function index() {
     $view = new Admin_View("admin.html");
-    $view->page_title = t("Hello World");
-    $view->content = new View("admin_piwik.html");
+    $view->page_title = t("Piwik Stats");
+    $view->content = new View("admin_piwik_stats.html");
+    $view->content->mode = module::get_var("piwik", "enabled_mode");
     print $view;
   }
 }

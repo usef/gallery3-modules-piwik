@@ -20,18 +20,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA  02110-1301, USA.
  */
-class piwik_event_Core {
-  static function admin_menu($menu, $theme) {
-    $menu->get("settings_menu")
-      ->append(Menu::factory("link")
-               ->id("piwik_menu")
-               ->label(t("Piwik"))
-               ->url(url::site("admin/piwik")));
-
-    $menu->get("content_menu")
-      ->append(Menu::factory("link")
-               ->id("piwik_stats_menu")
-               ->label(t("Piwik Stats"))
-               ->url(url::site("admin/piwik_stats")));
-  }
+class piwik_Core {
+  const basic_mode = "basic";
+  const advanced_mode = "advanced";
 }

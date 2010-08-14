@@ -29,7 +29,7 @@ class piwik_theme {
     }
 
     $piwik_code = '
-    <!-- Piwik -->
+    <!-- Piwik code inserted by Piwik Analytics Gallery3 plugin by Yusef Maali -->
     <script type="text/javascript">
       var pkBaseURL = (("https:" == document.location.protocol) ? "https://'.$piwik_url.'/" : "http://'.$piwik_url.'/");
       document.write(unescape("%3Cscript src=\'" + pkBaseURL + "piwik.js\' type=\'text/javascript\'%3E%3C/script%3E"));
