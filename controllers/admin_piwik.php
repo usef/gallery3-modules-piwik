@@ -87,10 +87,12 @@ class Admin_Piwik_Controller extends Admin_Controller {
     if ($form_type == piwik::basic_mode) {
       module::set_var("piwik", "site_id", $form->piwik_settings->site_id->value);
       module::set_var("piwik", "enabled_mode", piwik::basic_mode);
+      module::set_var("piwik", "token_auth", "");
     }
     elseif ($form_type == piwik::advanced_mode) {
       module::set_var("piwik", "token_auth", $form->piwik_settings->token_auth->value);
       module::set_var("piwik", "enabled_mode", piwik::advanced_mode);
+      module::set_var("piwik", "site_id", "");
     }
 
     message::success(t("Piwik settings updated"));
