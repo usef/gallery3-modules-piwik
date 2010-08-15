@@ -9,6 +9,6 @@
     <?= $menu->render() ?>
     </div>
 
-    <?= $form ?>
+    <?= $form->render() ?>
   </div>
 </div>

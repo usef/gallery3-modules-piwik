@@ -79,19 +79,25 @@ class Admin_Piwik_Controller extends Admin_Controller {
     elseif ($form_type == piwik::advanced_mode)
       $form = $this->_get_admin_advanced_form();
     else {
-      message::error(t("Invalid settings"));
+      message::error(t("Invalid working mode requested"));
       url::redirect("admin/piwik");
     }
 
     /* When validating, the Forge library will load the submitted form value */
-    $form->validate();
+    if (!$form->validate()) {
+      message::error(t("Invalid settings"));
 
-    /* Piwik tracking code needs URLs without the http header */
-    $trackingUrl = $form->piwik_settings->installation_url->value;
-    if (substr($trackingUrl, 0, 4) == "http")
-      $trackingUrl = substr($trackingUrl, strpos($trackingUrl, "://") + 3);
-    module::set_var("piwik", "installation_url", $trackingUrl);
+      /* Creates a new page to show the validated form (and relative error management) */
+      if ($form_type == piwik::basic_mode)
+        $this->basic_settings();
+      elseif ($form_type == piwik::advanced_mode)
+        $this->advanced_settings();
+      
+      return;
+    }
 
+    
+    module::set_var("piwik", "installation_url", $form->piwik_settings->installation_url->value);
 
     if ($form_type == piwik::basic_mode) {
       module::set_var("piwik", "site_id", $form->piwik_settings->site_id->value);
@@ -137,7 +143,7 @@ class Admin_Piwik_Controller extends Admin_Controller {
     $piwik_settings
        ->input("installation_url")
        ->label(t('Piwik Installation Url'))
-       ->rules("required")
+       ->rules("required|valid_url")
        ->value(module::get_var("piwik", "installation_url"));
     $piwik_settings
        ->input("site_id")
@@ -160,7 +166,7 @@ class Admin_Piwik_Controller extends Admin_Controller {
     $piwik_settings
        ->input("installation_url")
        ->label(t('Piwik Installation Url'))
-       ->rules("required")
+       ->rules("required|valid_url")
        ->value(module::get_var("piwik", "installation_url"));
     $piwik_settings
        ->input("token_auth")

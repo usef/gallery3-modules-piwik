@@ -22,8 +22,13 @@
  */
 class piwik_theme {
   static function page_bottom($theme) {
-    $piwik_url = module::get_var("piwik", "installation_url");
     $site_id = module::get_var("piwik", "site_id");
+    
+    /* Piwik tracking code needs URLs without the http header */
+    $piwik_url = module::get_var("piwik", "installation_url");
+    if (substr($piwik_url, 0, 4) == "http")
+      $piwik_url = substr($piwik_url, strpos($piwik_url, "://") + 3);
+        
     if (!$piwik_url || !$site_id) {
       return;
     }
