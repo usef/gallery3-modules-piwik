@@ -41,26 +41,13 @@ class Admin_Piwik_Controller extends Admin_Controller {
   }
 
   /*
-   * Shows the basic settings page
+   * Shows the basic/advanced settings page
    */
   public function basic_settings() {
-    $view = new Admin_View("admin.html");
-    $view->page_title = t("Piwik settings");
-    $view->content = new View("admin_piwik.html");
-    $view->content->menu = $this->_get_admin_menu();
-    $view->content->form = $this->_get_admin_basic_form();
-    print $view;
+    print $this->_get_settings_page_view($this->_get_admin_basic_form());
   }
-  /*
-   * Shows the advanced settings page
-   */
   public function advanced_settings() {
-    $view = new Admin_View("admin.html");
-    $view->page_title = t("Piwik settings");
-    $view->content = new View("admin_piwik.html");
-    $view->content->menu = $this->_get_admin_menu();
-    $view->content->form = $this->_get_admin_advanced_form();
-    print $view;
+    print $this->_get_settings_page_view($this->_get_admin_advanced_form());
   }
 
 
@@ -86,17 +73,15 @@ class Admin_Piwik_Controller extends Admin_Controller {
     /* When validating, the Forge library will load the submitted form value */
     if (!$form->validate()) {
       message::error(t("Invalid settings"));
-
-      /* Creates a new page to show the validated form (and relative error management) */
-      if ($form_type == piwik::basic_mode)
-        $this->basic_settings();
-      elseif ($form_type == piwik::advanced_mode)
-        $this->advanced_settings();
+      
+      /* Translate the error messages and show the new view with errors */
+      $this->_translate_form_error_messages($form);
+      print $this->_get_settings_page_view($form);
       
       return;
     }
 
-    
+    /* Saves the settings */
     module::set_var("piwik", "installation_url", $form->piwik_settings->installation_url->value);
 
     if ($form_type == piwik::basic_mode) {
@@ -112,27 +97,6 @@ class Admin_Piwik_Controller extends Admin_Controller {
     url::redirect("admin/piwik");
   }
 
-
-  /*
-   * Creates the navigation menu inside the admin page
-   */
-  private function _get_admin_menu() {
-    $menu = Menu::factory("root");
-    $menu->append(
-      Menu::factory("link")
-        ->id("basic_settings")
-        ->label(t("Basic Settings"))
-        ->url(url::site("admin/piwik/index/".piwik::basic_mode))
-      );
-    $menu->append(
-      Menu::factory("link")
-        ->id("advanced_settings")
-        ->label(t("Advanced Settings"))
-        ->url(url::site("admin/piwik/index/".piwik::advanced_mode))
-      );
-
-    return $menu;
-  }
 
   /*
    * Creates the basic settings form
@@ -179,4 +143,53 @@ class Admin_Piwik_Controller extends Admin_Controller {
 
     return $form;
   }
+
+  /*
+   * Create the View of the settings pages
+   */
+  private function _get_settings_page_view($form) {
+    /* Create the navigation menu inside the admin page */
+    $menu = Menu::factory("root");
+    $menu->append(
+      Menu::factory("link")
+        ->id("basic_settings")
+        ->label(t("Basic Settings"))
+        ->url(url::site("admin/piwik/index/".piwik::basic_mode))
+      );
+    $menu->append(
+      Menu::factory("link")
+        ->id("advanced_settings")
+        ->label(t("Advanced Settings"))
+        ->url(url::site("admin/piwik/index/".piwik::advanced_mode))
+      );
+ 
+    /* Create the view */
+    $view = new Admin_View("admin.html");
+    $view->page_title = t("Piwik settings");
+    $view->content = new View("admin_piwik.html");
+    $view->content->menu = $menu;
+    $view->content->form = $form;
+    return $view;
+  }
+
+  /*
+   * Loop through all form's input fields and use Kohana::message() to translate 
+   * the error messages
+   */
+  private function _translate_form_error_messages($form) {
+    foreach ($form->inputs as $input)
+    {
+      if ($input->type == "group") {
+        $this->_translate_form_error_messages($input);
+        continue;
+      }
+
+      if ($input->error_messages()) {
+        // usually there's only one error, if there are more, ignore them!
+        $errors = $input->error_messages();
+        $input->error_messages(Kohana::message($errors[0]));
+      }
+    }
+  }  
+
 }
