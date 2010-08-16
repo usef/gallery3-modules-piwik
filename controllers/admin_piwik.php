@@ -21,7 +21,6 @@
  * Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA  02110-1301, USA.
  */
 class Admin_Piwik_Controller extends Admin_Controller {
-
   /*
    * If called without parameters, checks for the enabled working mode
    * and redirect to the appropriate page
@@ -107,18 +106,18 @@ class Admin_Piwik_Controller extends Admin_Controller {
     $form = new Forge("admin/piwik/save_settings/".piwik::basic_mode, "", "post", array("id" => "g-piwik-admin-form"));
     $piwik_settings = $form->group("piwik_settings")->label(t("Basic Tracking Settings"));
     $piwik_settings
-       ->input("installation_url")
-       ->label(t('Piwik Installation Url'))
-       ->rules("required|valid_url")
-       ->value(module::get_var("piwik", "installation_url"));
+      ->input("installation_url")
+      ->label(t('Piwik Installation Url'))
+      ->rules("required|valid_url")
+      ->value(module::get_var("piwik", "installation_url"));
     $piwik_settings
-       ->input("site_id")
-       ->label(t('Site Id'))
-       ->rules("required|valid_digit")
-       ->value(module::get_var("piwik", "site_id"));
+      ->input("site_id")
+      ->label(t('Site Id'))
+      ->rules("required|valid_digit")
+      ->value(module::get_var("piwik", "site_id"));
     $piwik_settings
-       ->submit("submit")
-       ->value(t("Save"));
+      ->submit("submit")
+      ->value(t("Save"));
 
     return $form;
   }
@@ -127,21 +126,38 @@ class Admin_Piwik_Controller extends Admin_Controller {
    * Create the advanced settings form
    */
   private function _get_admin_advanced_form() {
+    $piwikApi = new Piwik_Api_Model();
+
     $form = new Forge("admin/piwik/save_settings/".piwik::advanced_mode, "", "post", array("id" => "g-piwik-admin-form"));
-    $piwik_settings = $form->group("piwik_settings")->label(t("Advanced Piwik Settings"));
-    $piwik_settings
-       ->input("installation_url")
-       ->label(t('Piwik Installation Url'))
-       ->rules("required|valid_url")
-       ->value(module::get_var("piwik", "installation_url"));
-    $piwik_settings
-       ->input("token_auth")
-       ->label(t('Authentication Token'))
-       ->rules("required")
-       ->value(module::get_var("piwik", "token_auth"));
-    $piwik_settings
-       ->submit("submit")
-       ->value(t("Save"));
+    $piwikSettings = $form->group("piwik_settings")->label(t("Advanced Piwik Settings"));
+    $piwikSettings
+      ->input("installation_url")
+      ->label(t('Piwik Installation Url'))
+      ->rules("required|valid_url")
+      ->value(module::get_var("piwik", "installation_url"));
+    $piwikSettings
+      ->input("token_auth")
+      ->label(t('Authentication Token'))
+      ->rules("required")
+      ->value(module::get_var("piwik", "token_auth"));
+    $piwikSettings
+      ->submit("submit")
+      ->value(t("Save"));
+
+
+    /* Populate the combobox with available site to track */
+    $trackOptions = array();
+    foreach($piwikApi->getSites() as $siteInfo)
+      $trackOptions[$siteInfo["idsite"]] = $siteInfo["name"];
+    
+    $trackingSettings = $form->group("tracking_settings")->label(t("Tracking Settings"));
+    $trackingSettings
+      ->dropdown("tracked_site")
+      ->label(t("Choose the site to track"))
+      ->options($trackOptions);
+    $trackingSettings
+      ->submit("submit")
+      ->value(t("Save"));
 
     return $form;
   }
