@@ -133,6 +133,17 @@ class Piwik_Api_Model {
     return $this->m_aSites;
   }
 
+  /*
+   * Returns the javascript tracking code, related to $siteId
+   */
+  public function getJavascriptTrackingCode($siteId) {
+    $url = $this->m_trackerUrl . "&method=SitesManager.getJavascriptTag&idSite=".$siteId;
+    $data = $this->_fetchData($url);
+    if($data === false)
+      return false;
+
+    return $data;
+  }
 
   /* Returns the initialization status */
   public function isInit() {

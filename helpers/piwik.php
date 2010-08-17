@@ -23,4 +23,14 @@
 class piwik_Core {
   const basic_mode = "basic";
   const advanced_mode = "advanced";
+
+  /* A shortcut to Kohana_Log */
+  static public function debug($message) {
+    if(is_array($message))
+      $message = print_r($message, true);
+    if(is_bool($message))
+      $message = $message ? "true" : "false";
+
+    Kohana_Log::add("error", $message);
+  }
 }

@@ -31,5 +31,6 @@ class piwik_installer_Core {
     module::clear_var("piwik", "site_id");
     module::clear_var("piwik", "token_auth");
     module::clear_var("piwik", "enabled_mode");
+    module::clear_var("piwik", "tracking_code");
   }
 }

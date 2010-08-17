@@ -22,33 +22,36 @@
  */
 class piwik_theme {
   static function page_bottom($theme) {
-    $site_id = module::get_var("piwik", "site_id");
-    
-    /* Piwik tracking code needs URLs without the http header */
-    $piwik_url = module::get_var("piwik", "installation_url");
-    if (substr($piwik_url, 0, 4) == "http")
-      $piwik_url = substr($piwik_url, strpos($piwik_url, "://") + 3);
-        
-    if (!$piwik_url || !$site_id) {
-      return;
+    $trackingCode = module::get_var("piwik", "tracking_code");
+
+    if(empty($trackingCode)) {
+      $siteId      = module::get_var("piwik", "site_id");
+      $trackingUrl = module::get_var("piwik", "installation_url");
+
+      /* Piwik tracking code needs URLs without the http header */
+      if (substr($trackingUrl, 0, 4) == "http")
+        $trackingUrl = substr($trackingUrl, strpos($trackingUrl, "://") + 3);
+
+      if (empty($trackingUrl) || empty($siteId))
+        return;
+
+      $trackingCode = '
+      <!-- Piwik code inserted by Piwik Analytics Gallery3 plugin by Yusef Maali -->
+      <script type="text/javascript">
+        var pkBaseURL = (("https:" == document.location.protocol) ? "https://'.$trackingUrl.'/" : "http://'.$trackingUrl.'/");
+        document.write(unescape("%3Cscript src=\'" + pkBaseURL + "piwik.js\' type=\'text/javascript\'%3E%3C/script%3E"));
+      </script><script type="text/javascript">
+        try {
+          var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", '.$siteId.');
+          piwikTracker.trackPageView();
+          piwikTracker.enableLinkTracking();
+        } catch( err ) {}
+      </script><noscript><p><img src="http://'.$trackingUrl.'/piwik.php?idsite='.$siteId.'" style="border:0" alt="" /></p></noscript>
+      <!-- End Piwik Tag -->
+
+      ';  
     }
 
-    $piwik_code = '
-    <!-- Piwik code inserted by Piwik Analytics Gallery3 plugin by Yusef Maali -->
-    <script type="text/javascript">
-      var pkBaseURL = (("https:" == document.location.protocol) ? "https://'.$piwik_url.'/" : "http://'.$piwik_url.'/");
-      document.write(unescape("%3Cscript src=\'" + pkBaseURL + "piwik.js\' type=\'text/javascript\'%3E%3C/script%3E"));
-    </script><script type="text/javascript">
-      try {
-        var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", '.$site_id.');
-        piwikTracker.trackPageView();
-        piwikTracker.enableLinkTracking();
-      } catch( err ) {}
-    </script><noscript><p><img src="http://'.$piwik_url.'/piwik.php?idsite='.$site_id.'" style="border:0" alt="" /></p></noscript>
-    <!-- End Piwik Tag -->
-
-    ';
-
-    return $piwik_code;
+    return $trackingCode;
   }
 }

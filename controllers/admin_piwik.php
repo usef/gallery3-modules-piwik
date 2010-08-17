@@ -84,14 +84,18 @@ class Admin_Piwik_Controller extends Admin_Controller {
     module::set_var("piwik", "installation_url", $form->piwik_settings->installation_url->value);
 
     if ($form_type == piwik::basic_mode) {
-      module::set_var("piwik", "site_id", $form->piwik_settings->site_id->value);
       module::set_var("piwik", "enabled_mode", piwik::basic_mode);
-      module::set_var("piwik", "token_auth", "");
+      module::set_var("piwik", "site_id",      $form->piwik_settings->site_id->value);
+      module::clear_var("piwik", "token_auth");
+      module::clear_var("piwik", "tracking_code");
     }
     elseif ($form_type == piwik::advanced_mode) {
-      module::set_var("piwik", "token_auth", $form->piwik_settings->token_auth->value);
-      module::set_var("piwik", "enabled_mode", piwik::advanced_mode);
-      module::set_var("piwik", "site_id", "");
+      module::set_var("piwik", "enabled_mode",  piwik::advanced_mode);
+      module::set_var("piwik", "token_auth",    $form->piwik_settings->token_auth->value);
+      module::set_var("piwik", "site_id",       $form->tracking_settings->tracked_site->value);
+      //piwik::debug($form->tracking_settings->tracking_js->value);
+      module::set_var("piwik", "tracking_code", $form->tracking_settings->tracking_js->value);
+      //piwik::debug(module::get_var("piwik", "tracking_code"));
     }
 
     message::success(t("Piwik settings updated"));
@@ -130,6 +134,7 @@ class Admin_Piwik_Controller extends Admin_Controller {
    */
   private function _get_admin_advanced_form($showErrors = true) {
     $piwikApi = new Piwik_Api_Model();
+    $siteId          = module::get_var("piwik", "site_id", 1); //should default to 1 if not set
     $tokenAuth       = module::get_var("piwik", "token_auth");
     $installationUrl = module::get_var("piwik", "installation_url");
 
@@ -165,12 +170,17 @@ class Admin_Piwik_Controller extends Admin_Controller {
     $trackOptions = array();
     foreach($piwikApi->getSites() as $siteInfo)
       $trackOptions[$siteInfo["idsite"]] = $siteInfo["name"];
-    
+
     $trackingSettings = $form->group("tracking_settings")->label(t("Tracking Settings"));
     $trackingSettings
       ->dropdown("tracked_site")
       ->label(t("Choose the site to track"))
-      ->options($trackOptions);
+      ->options($trackOptions)
+      ->selected($siteId);
+    $trackingSettings
+       ->textarea("tracking_js")
+       ->label(t("JavaScript tracking code"))
+       ->value($piwikApi->getJavascriptTrackingCode($siteId));
     $trackingSettings
       ->submit("submit")
       ->value(t("Save"));
