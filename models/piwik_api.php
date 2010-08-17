@@ -28,6 +28,9 @@ class Piwik_Api_Model {
   /* After the constructor has been called, it contains also the basic REST connection string */
   protected $m_trackerUrl;
 
+  /* If something goes wrong, here there's an error message */
+  protected $m_errorMessage;
+
   /*
    * A list of site tracked by Piwik.
    * The list is cached inside the constructor
@@ -45,17 +48,29 @@ class Piwik_Api_Model {
    *     [feedburnerName] => 
    *   )
    */
-  protected $m_aSites;
+  protected $m_aSites = array();
 
+  /*
+   * If true, the tracker URL and the token auth are correct
+   * and the site list has been fetched correctly
+   */
+  protected $m_bInit = false;
 
 
   public function __construct() {
     $this->m_trackerUrl = module::get_var("piwik", "installation_url", null);
     $this->m_tokenAuth  = module::get_var("piwik", "token_auth", null);
 
+    if(empty($this->m_trackerUrl) || empty($this->m_tokenAuth)) {
+      $this->m_errorMessage = t("Incomplete connection settings. Cannot connect to the Piwik server");
+      $this->m_bInit = false;
+      return;
+    }
+
+
+    //TODO add an option to choice here
     /* Make encrypted http connections */
-    //TODO reactivate this!!
-    //$this->m_trackerUrl = substr_replace($this->m_trackerUrl, "https", 0, 4);
+    $this->m_trackerUrl = substr_replace($this->m_trackerUrl, "https", 0, 4);
 
     /* Build basic REST connection string */
     if (substr($this->m_trackerUrl, -1) != "/")
@@ -63,10 +78,23 @@ class Piwik_Api_Model {
     $this->m_trackerUrl   .= "index.php?module=API&format=php&token_auth=".$this->m_tokenAuth;
 
     /* Populate the sites list. This is cached once, here. */
-    $this->m_aSites = array();
     $aIdList = $this->getAllSiteId();
-    foreach($aIdList as $id)
-      $this->m_aSites[$id] = $this->getSiteFromId($id);
+    if(!is_array($aIdList)) {
+      $this->m_bInit = false;
+      return;
+    }
+
+    foreach($aIdList as $id) {
+      $idSite = $this->getSiteFromId($id);
+      if($idSite === false) {
+        $this->m_bInit = false;
+        $this->m_aSites = array();
+        return;
+      }
+      $this->m_aSites[$id] = $idSite;
+    }
+
+    $this->m_bInit = true;
   }
 
 
@@ -76,6 +104,8 @@ class Piwik_Api_Model {
   public function getAllSiteId() {
     $url = $this->m_trackerUrl . "&method=SitesManager.getAllSitesId";
     $data = $this->_fetchData($url);
+    if($data === false)
+      return false;
 
     $reorderedData = array();
     foreach($data as $id)
@@ -90,6 +120,8 @@ class Piwik_Api_Model {
   public function getSiteFromId($siteId) {
     $url = $this->m_trackerUrl . "&method=SitesManager.getSiteFromId&idSite=".$siteId;
     $data = $this->_fetchData($url);
+    if($data === false)
+      return false;
 
     return $data[0];
   }
@@ -102,15 +134,39 @@ class Piwik_Api_Model {
   }
 
 
+  /* Returns the initialization status */
+  public function isInit() {
+    return $this->m_bInit;
+  }
+
+  /* Returns the error message */
+  public function getErrorMessage() {
+    return $this->m_errorMessage;
+  }
 
 
   /*
-   * ##### Have care of this function!! #####
+   * Returns Piwik unserialized datas or
+   * FALSE if something goes wrong (in that case m_errorMessage will be filled with the error message).
    */
   private function _fetchData($restUrl) {
-    //TODO timeouted connections?
     $fetchedData = file_get_contents($restUrl);
-    return unserialize($fetchedData);
+
+    /* Check for timeouted connection or other connection problems */
+    if($fetchedData === false) {
+      $this->m_errorMessage = t("Some problems occurs while connecting with the Piwik server. Please check the URL");
+      return false;
+    }
+
+    $fetchedData = unserialize($fetchedData);
+
+    /* Check for error messages */
+    if(isset($fetchedData["result"]) && $fetchedData["result"] == "error") {
+      $this->m_errorMessage = $fetchedData["message"];
+      return false;
+    }
+
+    return $fetchedData;
   }
 
 }

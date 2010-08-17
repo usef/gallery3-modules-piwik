@@ -63,7 +63,7 @@ class Admin_Piwik_Controller extends Admin_Controller {
     if ($form_type == piwik::basic_mode)
       $form = $this->_get_admin_basic_form();
     elseif ($form_type == piwik::advanced_mode)
-      $form = $this->_get_admin_advanced_form();
+      $form = $this->_get_admin_advanced_form(false);
     else {
       message::error(t("Invalid working mode requested"));
       url::redirect("admin/piwik");
@@ -123,10 +123,15 @@ class Admin_Piwik_Controller extends Admin_Controller {
   }
 
   /*
-   * Create the advanced settings form
+   * Create the advanced settings form.
+   * $showErrors, if false, inhibits the use of message::error if any errors occur.
+   * This may be helpful if you are creating the form with transient settings, ie. in
+   * saveSettings function, where the form is created before validating it.
    */
-  private function _get_admin_advanced_form() {
+  private function _get_admin_advanced_form($showErrors = true) {
     $piwikApi = new Piwik_Api_Model();
+    $tokenAuth       = module::get_var("piwik", "token_auth");
+    $installationUrl = module::get_var("piwik", "installation_url");
 
     $form = new Forge("admin/piwik/save_settings/".piwik::advanced_mode, "", "post", array("id" => "g-piwik-admin-form"));
     $piwikSettings = $form->group("piwik_settings")->label(t("Advanced Piwik Settings"));
@@ -134,15 +139,26 @@ class Admin_Piwik_Controller extends Admin_Controller {
       ->input("installation_url")
       ->label(t('Piwik Installation Url'))
       ->rules("required|valid_url")
-      ->value(module::get_var("piwik", "installation_url"));
+      ->value($installationUrl);
     $piwikSettings
       ->input("token_auth")
       ->label(t('Authentication Token'))
       ->rules("required")
-      ->value(module::get_var("piwik", "token_auth"));
+      ->value($tokenAuth);
     $piwikSettings
       ->submit("submit")
       ->value(t("Save"));
+
+
+    /* If some errors occur, doesn't show the Piwik related form elements */
+    if(!$piwikApi->isInit()) {
+      if(empty($installationUrl) || empty($tokenAuth))
+        return $form;
+
+      if($showErrors)
+        message::error(t("Piwik Analytics returns the following error message: ") . $piwikApi->getErrorMessage());
+      return $form;
+    }
 
 
     /* Populate the combobox with available site to track */
